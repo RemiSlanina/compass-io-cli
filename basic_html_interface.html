@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compass-io CLI - Ethical Decision Assistant</title>
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --secondary: #45a049;
+            --background: #f5f5f5;
+            --text: #333;
+            --light: #fff;
+            --warning: #ff9800;
+            --danger: #f44336;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: var(--light);
+            padding: 30px 0;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background-color: var(--light);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            min-height: 150px;
+            resize: vertical;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+        
+        textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+        }
+        
+        .button {
+            background-color: var(--primary);
+            color: var(--light);
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            font-weight: 600;
+        }
+        
+        .button:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+        }
+        
+        .button:active {
+            transform: translateY(0);
+        }
+        
+        .button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .results {
+            background-color: var(--light);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-top: 20px;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .section:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+        
+        .section-title {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .entities-list, .suggestions-list, .warnings-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .entities-list li, .suggestions-list li, .warnings-list li {
+            padding: 8px 0;
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        .entities-list li:before {
+            content: "•";
+            color: var(--primary);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        .suggestions-list li:before {
+            content: "💡";
+            color: var(--primary);
+            position: absolute;
+            left: 0;
+        }
+        
+        .warnings-list li:before {
+            content: "⚠️";
+            color: var(--warning);
+            position: absolute;
+            left: 0;
+        }
+        
+        .red-flags-list li:before {
+            content: "🚩";
+            color: var(--danger);
+            position: absolute;
+            left: 0;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .badge-primary {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: var(--primary);
+        }
+        
+        .badge-warning {
+            background-color: rgba(255, 152, 0, 0.2);
+            color: var(--warning);
+        }
+        
+        .badge-danger {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: var(--danger);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(76, 175, 80, 0.2);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            color: var(--danger);
+            background-color: rgba(244, 67, 54, 0.1);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .success {
+            color: var(--primary);
+            background-color: rgba(76, 175, 80, 0.1);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .info-box {
+            background-color: rgba(76, 175, 80, 0.05);
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .info-box h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .example-scenarios {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .example-card {
+            background-color: var(--light);
+            border: 2px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .example-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .example-card h4 {
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+        
+        .example-card p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .example-scenarios {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <title>Compass-io CLI - Ethical Decision Assistant</title>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🧭 Compass-io Ethical Decision Assistant</h1>
+            <p class="subtitle">Helping you make ethical decisions with confidence</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="card">
+            <div class="input-group">
+                <label for="scenario">Describe your ethical scenario</label>
+                <textarea id="scenario" placeholder="Example: building an apartment complex affecting 100 residents and local wildlife"></textarea>
+                <p style="margin-top: 10px; color: #666; font-size: 0.9rem;">
+                    Describe your situation in natural language. Mention who or what is affected, the context, and any concerns.
+                </p>
+            </div>
+            
+            <button class="button" id="analyzeBtn" onclick="analyzeScenario()">
+                🔍 Analyze Ethical Impact
+            </button>
+            
+            <div class="info-box">
+                <h3>💡 Need inspiration?</h3>
+                <p>Try one of these example scenarios:</p>
+                <div class="example-scenarios">
+                    <div class="example-card" onclick="useExample('building a 200-unit apartment complex in Portland affecting local residents and the Willamette River ecosystem')">
+                        <h4>Urban Development</h4>
+                        <p>Building housing with environmental and community impacts</p>
+                    </div>
+                    <div class="example-card" onclick="useExample('deploying AI-powered hiring system that will impact 500 job applicants and may have bias concerns')">
+                        <h4>Technology Ethics</h4>
+                        <p>AI system with potential bias and fairness issues</p>
+                    </div>
+                    <div class="example-card" onclick="useExample('constructing new highway through protected forest area affecting endangered species and local communities')">
+                        <h4>Environmental Impact</h4>
+                        <p>Infrastructure project with ecological consequences</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="results" class="results" style="display: none;">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing ethical scenario...</p>
+            </div>
+            
+            <div id="resultsContent"></div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Compass-io CLI - Ethical Decision Making Framework | 
+           <a href="https://github.com/yourusername/compass-io-cli" target="_blank">GitHub</a> | 
+           <a href="#" onclick="showAbout()">About</a>
+        </p>
+    </div>
+    
+    <script>
+        // API configuration
+        const API_URL = 'http://localhost:5000';
+        
+        // DOM elements
+        const scenarioInput = document.getElementById('scenario');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const resultsDiv = document.getElementById('results');
+        const loadingDiv = document.getElementById('loading');
+        const resultsContent = document.getElementById('resultsContent');
+        
+        // Example scenarios
+        function useExample(text) {
+            scenarioInput.value = text;
+            scenarioInput.focus();
+        }
+        
+        // Analyze scenario
+        async function analyzeScenario() {
+            const scenario = scenarioInput.value.trim();
+            
+            if (!scenario) {
+                alert('Please enter a scenario to analyze.');
+                return;
+            }
+            
+            // Show loading state
+            resultsDiv.style.display = 'block';
+            loadingDiv.style.display = 'block';
+            resultsContent.innerHTML = '';
+            analyzeBtn.disabled = true;
+            
+            try {
+                // Call API
+                const response = await fetch(`${API_URL}/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        scenario: scenario,
+                        method: 'simple'
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                displayResults(data);
+                
+            } catch (error) {
+                console.error('Analysis error:', error);
+                resultsContent.innerHTML = `
+                    <div class="error">
+                        <strong>Error:</strong> ${error.message}
+                        <p>Please make sure the API server is running at ${API_URL}</p>
+                    </div>
+                `;
+            } finally {
+                loadingDiv.style.display = 'none';
+                analyzeBtn.disabled = false;
+            }
+        }
+        
+        // Display results
+        function displayResults(data) {
+            const parsing = data.parsing;
+            const analysis = data.analysis;
+            
+            let html = `
+                <div class="section">
+                    <h2 class="section-title">📋 Analysis Summary</h2>
+                    <p><strong>Confidence:</strong> <span class="badge badge-primary">${(parsing.confidence * 100).toFixed(1)}%</span></p>
+                    <p><strong>Method:</strong> ${parsing.parsing_method.replace('_', ' ')}</p>
+                </div>
+            `;
+            
+            // Entities
+            if (parsing.entities && parsing.entities.length > 0) {
+                html += `
+                    <div class="section">
+                        <h2 class="section-title">👥 Affected Entities</h2>
+                        <ul class="entities-list">
+                `;
+                
+                parsing.entities.forEach(entity => {
+                    const entityType = entity.type.replace('_', ' ');
+                    const vulnerability = entity.vulnerability > 1 ? 
+                        `<span class="badge badge-warning">Vulnerability: ${entity.vulnerability}x</span>` : '';
+                    html += `
+                        <li>
+                            ${entity.count} ${entityType} ${vulnerability}
+                            <br><small>${entity.description}</small>
+                        </li>
+                    `;
+                });
+                
+                html += `
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            // Model and lenses
+            html += `
+                <div class="section">
+                    <h2 class="section-title">🎯 Analysis Configuration</h2>
+                    <p><strong>Ethical Model:</strong> ${parsing.model.replace('_', ' ')}</p>
+            `;
+            
+            if (parsing.lenses && parsing.lenses.length > 0) {
+                html += `<p><strong>Lenses:</strong> ${parsing.lenses.map(l => l.replace('_', ' ')).join(', ')}</p>`;
+            }
+            
+            html += `</div>`;
+            
+            // Ethical analysis results
+            html += `
+                <div class="section">
+                    <h2 class="section-title">📊 Ethical Impact Analysis</h2>
+                    <p><strong>Suffering Score:</strong> ${analysis.suffering_score.toFixed(2)}</p>
+                    <p><strong>Impact Level:</strong> 
+                        <span class="badge ${getImpactBadge(analysis.impact_level)}">
+                            ${analysis.impact_level}
+                        </span>
+                    </p>
+                </div>
+            `;
+            
+            // Red flags
+            if (analysis.red_flags && analysis.red_flags.length > 0) {
+                html += `
+                    <div class="section">
+                        <h2 class="section-title">🚩 Critical Red Flags</h2>
+                        <ul class="red-flags-list">
+                `;
+                
+                analysis.red_flags.forEach(flag => {
+                    html += `<li>${flag}</li>`;
+                });
+                
+                html += `
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            // Suggestions
+            if (analysis.suggestions && analysis.suggestions.length > 0) {
+                html += `
+                    <div class="section">
+                        <h2 class="section-title">💡 Recommendations</h2>
+                        <ul class="suggestions-list">
+                `;
+                
+                analysis.suggestions.forEach(suggestion => {
+                    html += `<li>${suggestion}</li>`;
+                });
+                
+                html += `
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            // Parsing suggestions
+            if (parsing.suggestions && parsing.suggestions.length > 0) {
+                html += `
+                    <div class="section">
+                        <h2 class="section-title">🔍 Parsing Suggestions</h2>
+                        <ul class="suggestions-list">
+                `;
+                
+                parsing.suggestions.forEach(suggestion => {
+                    html += `<li>${suggestion}</li>`;
+                });
+                
+                html += `
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            // Warnings
+            if (parsing.warnings && parsing.warnings.length > 0) {
+                html += `
+                    <div class="section">
+                        <h2 class="section-title">⚠️ Warnings</h2>
+                        <ul class="warnings-list">
+                `;
+                
+                parsing.warnings.forEach(warning => {
+                    html += `<li>${warning}</li>`;
+                });
+                
+                html += `
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            // Detailed explanation
+            html += `
+                <div class="section">
+                    <h2 class="section-title">📝 Detailed Explanation</h2>
+                    <div style="white-space: pre-wrap; font-family: monospace; background: #f9f9f9; padding: 15px; border-radius: 5px;">
+                        ${analysis.explanation}
+                    </div>
+                </div>
+            `;
+            
+            resultsContent.innerHTML = html;
+        }
+        
+        // Helper function for impact badges
+        function getImpactBadge(impactLevel) {
+            const levels = {
+                'NONE': 'badge-primary',
+                'LOW': 'badge-primary',
+                'MEDIUM': 'badge-warning',
+                'HIGH': 'badge-danger',
+                'CRITICAL': 'badge-danger'
+            };
+            return levels[impactLevel] || 'badge-primary';
+        }
+        
+        // About dialog
+        function showAbout() {
+            alert(`Compass-io CLI - Ethical Decision Making Framework
+
+Version: 0.1.0
+License: MIT (recommended)
+
+A tool to help analyze ethical scenarios and make better decisions.
+
+GitHub: https://github.com/yourusername/compass-io-cli`);
+        }
+        
+        // Allow Enter key to submit
+        scenarioInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                analyzeScenario();
+            }
+        });
+        
+        // Initialize
+        console.log('Compass-io CLI Web Interface initialized');
+        console.log('API URL:', API_URL);
+    </script>
+</body>
+</html>
